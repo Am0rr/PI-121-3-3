@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PI.DAL.Entities.Identity;
 
 namespace PI.DAL;
 
@@ -9,4 +10,11 @@ public class AppDbContext : DbContext
     {
     }
 
+    public DbSet<User> Users { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        base.OnModelCreating(modelBuilder);
+    }
 }
