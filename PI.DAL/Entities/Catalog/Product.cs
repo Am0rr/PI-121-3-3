@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace PI.DAL.Entities.Catalog;
+﻿namespace PI.DAL.Entities.Catalog;
 
 public class Product : BaseEntity
 {
@@ -35,13 +33,5 @@ public class Product : BaseEntity
             throw new ArgumentException("Stock quantity cannot be negative.", nameof(stockQuantity));
 
         return new Product(categoryId, name, description, price, stockQuantity, imageUrl);
-    }
-
-    public void UpdateStock(int quantity)
-    {
-        if (StockQuantity + quantity < 0)
-            throw new InvalidOperationException("Stock quantity cannot drop below zero.");
-
-        StockQuantity += quantity;
     }
 }
