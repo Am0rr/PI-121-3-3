@@ -41,7 +41,7 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
                 "price_asc" => query.OrderBy(p => p.Price),
                 "price_desc" => query.OrderByDescending(p => p.Price),
                 "name_desc" => query.OrderByDescending(p => p.Name),
-                _ => query.OrderBy(p => p.Name) // Default sorting
+                _ => query.OrderBy(p => p.Name)
             };
         }
         else
