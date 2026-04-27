@@ -11,7 +11,7 @@ public class User : BaseEntity
 
     protected User() { }
 
-    private User(string username, string email, string passwordHash, UserRole role = UserRole.Client)
+    private User(string username, string email, string passwordHash, UserRole role = UserRole.Registered)
     {
         Username = username;
         Email = email;
@@ -19,7 +19,7 @@ public class User : BaseEntity
         Role = role;
     }
 
-    public static User Create(string username, string email, string passwordHash, UserRole role = UserRole.Client)
+    public static User Create(string username, string email, string passwordHash, UserRole role = UserRole.Registered)
     {
         if (string.IsNullOrWhiteSpace(username))
             throw new ArgumentException("Username is required.", nameof(username));
