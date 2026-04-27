@@ -12,10 +12,8 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
 
     public async Task<(IEnumerable<Product> Items, int TotalCount)> GetFilteredPagedAsync(ProductFilterParams filter, CancellationToken cancellationToken = default)
     {
-        // 1. Create a query
         var query = _dbSet.AsNoTracking();
 
-        // 2. Apply filters
         if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
         {
             query = query.Where(p => p.Name.Contains(filter.SearchTerm) || p.Description.Contains(filter.SearchTerm));
@@ -36,7 +34,6 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
             query = query.Where(p => p.Price <= filter.MaxPrice.Value);
         }
 
-        // 3. Sort using OrderBy/OrderByDescending based on filter.SortBy
         if (!string.IsNullOrWhiteSpace(filter.SortBy))
         {
             query = filter.SortBy.ToLower() switch
@@ -49,14 +46,11 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
         }
         else
         {
-            // Default sort is required before using Skip/Take in EF Core
             query = query.OrderBy(p => p.Name);
         }
 
-        // 4. Get the total count
         int totalCount = await query.CountAsync(cancellationToken);
 
-        // 5. Apply pagination & 6. Return the result
         var items = await query
             .Skip((filter.PageNumber - 1) * filter.PageSize)
             .Take(filter.PageSize)
@@ -67,7 +61,6 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
 
     public async Task<Product?> GetWithDetailsAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        // Added .AsNoTracking() to satisfy the technical requirement for read methods
         return await _dbSet
             .AsNoTracking()
             .Include(p => p.Category)
