@@ -10,7 +10,7 @@ public class UnitOfWork : IUnitOfWork
     public IUserRepository Users { get; }
     public ICategoryRepository Categories { get; }
     public IProductRepository Products { get; }
-    public IOrderRepository Orders { get; private set; }
+    public IOrderRepository Orders { get; }
 
     public UnitOfWork(AppDbContext context)
     {
