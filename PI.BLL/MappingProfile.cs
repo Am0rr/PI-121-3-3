@@ -10,5 +10,7 @@ public class MappingProfile : Profile
     {
         CreateMap<Product, ProductResponse>()
             .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name));
+
+        CreateMap<Category, CategoryResponse>();
     }
 }
