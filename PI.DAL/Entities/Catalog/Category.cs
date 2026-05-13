@@ -27,4 +27,18 @@ public class Category : BaseEntity
 
         return new Category(name, description);
     }
+
+    public void UpdateName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Category name cannot be null or empty.", nameof(name));
+        Name = name;
+    }
+
+    public void UpdateDescription(string description)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+            throw new ArgumentException("Category description cannot be null or empty.", nameof(description));
+        Description = description;
+    }
 }
