@@ -40,24 +40,51 @@ public class ProductService : IProductService
 
     public async Task UpdateAsync(UpdateProductRequest request)
     {
-        var product = await _unitOfWork.Products.GetByIDAsync(request.Id);
-        if (product == null)
-            throw new KeyNotFoundException($"Product with ID {request.Id} was not found.");
+        var product = await _unitOfWork.Products.GetByIDAsync(request.Id)
+            ?? throw new KeyNotFoundException($"Product with ID {request.Id} was not found.");
 
-        if (product.CategoryId != request.CategoryId)
+        bool hasChanges = false;
+
+        if (request.CategoryId != product.CategoryId)
         {
-            var category = await _unitOfWork.Categories.GetByIDAsync(request.CategoryId);
-            if (category == null)
-                throw new KeyNotFoundException($"Category with ID {request.CategoryId} was not found.");
+            var category = await _unitOfWork.Categories.GetByIDAsync(request.CategoryId)
+                ?? throw new KeyNotFoundException($"Category with ID {request.CategoryId} was not found.");
+
+            product.UpdateCategory(request.CategoryId);
+            hasChanges = true;
         }
 
-        product.Update(
-            request.CategoryId,
-            request.Name,
-            request.Description,
-            request.Price,
-            request.StockQuantity,
-            request.ImageUrl);
+        if (request.Name != product.Name)
+        {
+            product.UpdateName(request.Name);
+            hasChanges = true;
+        }
+
+        if (request.Description != product.Description)
+        {
+            product.UpdateDescription(request.Description);
+            hasChanges = true;
+        }
+
+        if (request.Price != product.Price)
+        {
+            product.UpdatePrice(request.Price);
+            hasChanges = true;
+        }
+
+        if (request.StockQuantity != product.StockQuantity)
+        {
+            product.UpdateStockQuantity(request.StockQuantity);
+            hasChanges = true;
+        }
+
+        if (request.ImageUrl != product.ImageUrl)
+        {
+            product.UpdateImageUrl(request.ImageUrl);
+            hasChanges = true;
+        }
+
+        if (!hasChanges) return;
 
         _unitOfWork.Products.Update(product);
         await _unitOfWork.CompleteAsync();
