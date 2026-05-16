@@ -21,10 +21,18 @@ public class CategoryService : ICategoryService
     {
         var category = Category.Create(request.Name, request.Description);
 
-        await _unitOfWork.Categories.AddAsync(category);
-        await _unitOfWork.SaveChangesAsync();
-
-        return category.Id;
+        await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            await _unitOfWork.Categories.AddAsync(category);
+            await _unitOfWork.CommitTransactionAsync();
+            return category.Id;
+        }
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
     }
 
     public async Task UpdateAsync(UpdateCategoryRequest request)
@@ -48,8 +56,17 @@ public class CategoryService : ICategoryService
 
         if (!hasChanges) return;
 
-        _unitOfWork.Categories.Update(category);
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            _unitOfWork.Categories.Update(category);
+            await _unitOfWork.CommitTransactionAsync();
+        }
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
     }
 
     public async Task DeleteAsync(Guid id)
@@ -57,8 +74,17 @@ public class CategoryService : ICategoryService
         var category = await _unitOfWork.Categories.GetByIDAsync(id)
             ?? throw new KeyNotFoundException($"Category with ID {id} was not found.");
 
-        _unitOfWork.Categories.Delete(category);
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            _unitOfWork.Categories.Delete(category);
+            await _unitOfWork.CommitTransactionAsync();
+        }
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
     }
 
     public async Task<CategoryResponse?> GetByIdAsync(Guid id)

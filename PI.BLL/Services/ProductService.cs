@@ -32,10 +32,18 @@ public class ProductService : IProductService
             request.StockQuantity,
             request.ImageUrl);
 
-        await _unitOfWork.Products.AddAsync(product);
-        await _unitOfWork.SaveChangesAsync();
-
-        return product.Id;
+        await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            await _unitOfWork.Products.AddAsync(product);
+            await _unitOfWork.CommitTransactionAsync();
+            return product.Id;
+        }
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
     }
 
     public async Task UpdateAsync(UpdateProductRequest request)
@@ -86,8 +94,17 @@ public class ProductService : IProductService
 
         if (!hasChanges) return;
 
-        _unitOfWork.Products.Update(product);
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            _unitOfWork.Products.Update(product);
+            await _unitOfWork.CommitTransactionAsync();
+        }
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
     }
 
     public async Task DeleteAsync(Guid id)
@@ -96,8 +113,17 @@ public class ProductService : IProductService
         if (product == null)
             throw new KeyNotFoundException($"Product with ID {id} was not found.");
 
-        _unitOfWork.Products.Delete(product);
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            _unitOfWork.Products.Delete(product);
+            await _unitOfWork.CommitTransactionAsync();
+        }
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
     }
 
     public async Task<ProductResponse?> GetByIdAsync(Guid id)
@@ -118,7 +144,6 @@ public class ProductService : IProductService
     public async Task<(IEnumerable<ProductResponse> Items, int TotalCount)> GetPagedAsync(ProductFilterParams filter)
     {
         var (items, totalCount) = await _unitOfWork.Products.GetFilteredPagedAsync(filter);
-
         var mappedItems = _mapper.Map<IEnumerable<ProductResponse>>(items);
 
         return (mappedItems, totalCount);
