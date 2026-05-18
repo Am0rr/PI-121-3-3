@@ -30,4 +30,19 @@ public class User : BaseEntity
 
         return new User(username, email, passwordHash, role);
     }
+
+    public void ChangeUsername(string newUsername)
+    {
+        Username = newUsername;
+    }
+
+    public void ChangeEmail(string newEmail)
+    {
+        Email = newEmail;
+    }
+
+    public void ChangeRole(UserRole newRole)
+    {
+        Role = newRole;
+    }
 }
