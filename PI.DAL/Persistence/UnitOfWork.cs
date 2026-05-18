@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore.Storage;
 using PI.DAL.Interfaces;
 
 namespace PI.DAL.Persistence;
@@ -6,7 +5,6 @@ namespace PI.DAL.Persistence;
 public class UnitOfWork : IUnitOfWork, IAsyncDisposable
 {
     private readonly AppDbContext _context;
-    private IDbContextTransaction? _currentTransaction;
 
     public IUserRepository Users { get; }
     public ICategoryRepository Categories { get; }
@@ -27,74 +25,28 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
         Orders = orderRepository;
     }
 
-    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {
-        await _context.SaveChangesAsync(cancellationToken);
-    }
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
 
-    public async Task BeginTransactionAsync()
-    {
-        if (_currentTransaction != null)
-            throw new InvalidOperationException("A transaction is already in progress.");
-
-        _currentTransaction = await _context.Database.BeginTransactionAsync();
-    }
-
-    public async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
-    {
         try
         {
-            await SaveChangesAsync(cancellationToken);
+            var result = await _context.SaveChangesAsync(cancellationToken);
 
-            if (_currentTransaction != null)
-            {
-                await _currentTransaction.CommitAsync(cancellationToken);
-            }
+            await transaction.CommitAsync(cancellationToken);
+
+            return result;
         }
         catch
         {
-            await RollbackTransactionAsync();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
-        }
-        finally
-        {
-            if (_currentTransaction != null)
-            {
-                await _currentTransaction.DisposeAsync();
-                _currentTransaction = null;
-            }
-        }
-    }
-
-    public async Task RollbackTransactionAsync()
-    {
-        try
-        {
-            if (_currentTransaction != null)
-            {
-                await _currentTransaction.RollbackAsync();
-            }
-        }
-        finally
-        {
-            if (_currentTransaction != null)
-            {
-                await _currentTransaction.DisposeAsync();
-                _currentTransaction = null;
-            }
         }
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_currentTransaction != null)
-        {
-            await _currentTransaction.DisposeAsync();
-            _currentTransaction = null;
-        }
-
         await _context.DisposeAsync();
-
         GC.SuppressFinalize(this);
     }
 }
