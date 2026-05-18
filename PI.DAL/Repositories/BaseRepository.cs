@@ -16,19 +16,19 @@ public abstract class BaseRepository<T> : IBaseRepository<T> where T : BaseEntit
         _dbSet = _context.Set<T>();
     }
 
-    public async Task<T?> GetByIDAsync(Guid id)
+    public async Task<T?> GetByIDAsync(Guid id, CancellationToken cancellationToken)
     {
-        return await _dbSet.FindAsync(id);
+        return await _dbSet.FindAsync(id, cancellationToken);
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync()
+    public async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken)
     {
-        return await _dbSet.ToListAsync();
+        return await _dbSet.ToListAsync(cancellationToken);
     }
 
-    public async Task<Guid> AddAsync(T item)
+    public async Task<Guid> AddAsync(T item, CancellationToken cancellationToken)
     {
-        await _dbSet.AddAsync(item);
+        await _dbSet.AddAsync(item, cancellationToken);
         return item.Id;
     }
 
