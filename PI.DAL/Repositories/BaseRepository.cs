@@ -16,7 +16,7 @@ public abstract class BaseRepository<T> : IBaseRepository<T> where T : BaseEntit
         _dbSet = _context.Set<T>();
     }
 
-    public async Task<T?> GetByIDAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _dbSet.FindAsync(id, cancellationToken);
     }

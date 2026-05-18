@@ -20,7 +20,7 @@ public class ProductService : IProductService
 
     public async Task<Guid> CreateAsync(CreateProductRequest request)
     {
-        var category = await _unitOfWork.Categories.GetByIDAsync(request.CategoryId);
+        var category = await _unitOfWork.Categories.GetByIdAsync(request.CategoryId);
         if (category == null)
             throw new KeyNotFoundException($"Category with ID {request.CategoryId} was not found.");
 
@@ -40,14 +40,14 @@ public class ProductService : IProductService
 
     public async Task UpdateAsync(UpdateProductRequest request)
     {
-        var product = await _unitOfWork.Products.GetByIDAsync(request.Id)
+        var product = await _unitOfWork.Products.GetByIdAsync(request.Id)
             ?? throw new KeyNotFoundException($"Product with ID {request.Id} was not found.");
 
         bool hasChanges = false;
 
         if (request.CategoryId != product.CategoryId)
         {
-            var category = await _unitOfWork.Categories.GetByIDAsync(request.CategoryId)
+            var category = await _unitOfWork.Categories.GetByIdAsync(request.CategoryId)
                 ?? throw new KeyNotFoundException($"Category with ID {request.CategoryId} was not found.");
 
             product.UpdateCategory(request.CategoryId);
@@ -92,7 +92,7 @@ public class ProductService : IProductService
 
     public async Task DeleteAsync(Guid id)
     {
-        var product = await _unitOfWork.Products.GetByIDAsync(id);
+        var product = await _unitOfWork.Products.GetByIdAsync(id);
         if (product == null)
             throw new KeyNotFoundException($"Product with ID {id} was not found.");
 

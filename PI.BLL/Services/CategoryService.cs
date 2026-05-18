@@ -28,7 +28,7 @@ public class CategoryService : ICategoryService
 
     public async Task UpdateAsync(UpdateCategoryRequest request)
     {
-        var category = await _unitOfWork.Categories.GetByIDAsync(request.Id)
+        var category = await _unitOfWork.Categories.GetByIdAsync(request.Id)
             ?? throw new KeyNotFoundException($"Category with ID {request.Id} was not found.");
 
         bool hasChanges = false;
@@ -53,7 +53,7 @@ public class CategoryService : ICategoryService
 
     public async Task DeleteAsync(Guid id)
     {
-        var category = await _unitOfWork.Categories.GetByIDAsync(id)
+        var category = await _unitOfWork.Categories.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"Category with ID {id} was not found.");
 
         _unitOfWork.Categories.Delete(category);
@@ -62,7 +62,7 @@ public class CategoryService : ICategoryService
 
     public async Task<CategoryResponse?> GetByIdAsync(Guid id)
     {
-        var category = await _unitOfWork.Categories.GetByIDAsync(id)
+        var category = await _unitOfWork.Categories.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"Category with ID {id} was not found.");
 
         return _mapper.Map<CategoryResponse>(category);
