@@ -7,8 +7,5 @@ public interface IUnitOfWork
     IProductRepository Products { get; }
     IOrderRepository Orders { get; }
 
-    Task SaveChangesAsync(CancellationToken cancellationToken = default);
-    Task BeginTransactionAsync();
-    Task CommitTransactionAsync(CancellationToken cancellationToken = default);
-    Task RollbackTransactionAsync();
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
