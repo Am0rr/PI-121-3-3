@@ -11,15 +11,33 @@ public class OrderRepository : BaseRepository<Order>, IOrderRepository
     {
     }
 
+    public override async Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await _dbSet
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+            .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
+    }
+
+    public override async Task<IEnumerable<Order>> GetAllAsync(CancellationToken cancellationToken)
+    {
+        return await _dbSet
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IEnumerable<Order>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken)
     {
         return await _dbSet
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
             .AsNoTracking()
             .Where(o => o.UserId == userId)
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<Order?> GetWithDetailsAsync(Guid id, CancellationToken cancellationToken)
+        public async Task<Order?> GetWithDetailsAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _dbSet
             .Include(o => o.OrderItems)
