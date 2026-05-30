@@ -5,6 +5,8 @@ using PI.BLL.DTOs.Catalog;
 using PI.BLL.DTOs.Orders;
 using PI.DAL.Entities.Identity;
 using PI.BLL.DTOs.Identity;
+using PI.DAL.Models.Statistic;
+using PI.BLL.DTOs.Statistic;
 
 namespace PI.BLL;
 
@@ -27,5 +29,10 @@ public class MappingProfile : Profile
 
         CreateMap<User, UserResponse>()
             .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()));
+
+        CreateMap<TopProductModel, TopProductResponse>();
+        CreateMap<CategoryRevenueModel, CategoryRevenueResponse>();
+        CreateMap<LowStockModel, LowStockResponse>();
+        CreateMap<TopUserModel, TopUserResponse>();
     }
 }
