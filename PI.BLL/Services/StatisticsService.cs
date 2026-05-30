@@ -5,15 +5,14 @@ using PI.DAL.Interfaces;
 
 namespace PI.BLL.Services;
 
-public class StatisticsService : BaseService, IStatisticsService
+public class StatisticsService : IStatisticsService
 {
     private readonly IStatisticsRepository _statisticsRepository;
     private readonly IMapper _mapper;
 
     public StatisticsService(
         IStatisticsRepository statisticsRepository,
-        IMapper mapper,
-        IServiceProvider serviceProvider) : base(serviceProvider)
+        IMapper mapper)
     {
         _statisticsRepository = statisticsRepository;
         _mapper = mapper;
