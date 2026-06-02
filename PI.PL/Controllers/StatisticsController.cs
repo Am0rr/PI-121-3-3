@@ -18,7 +18,7 @@ public class StatisticsController : ControllerBase
     }
 
     [HttpGet("summary")]
-    public async Task<ActionResult<SummaryResponse>> GetSummaryAsync([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<SummaryResponse>> GetSummaryAsync(CancellationToken cancellationToken, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
     {
         var result = await _statisticsService.GetSummaryAsync(startDate, endDate, cancellationToken);
 
@@ -26,7 +26,7 @@ public class StatisticsController : ControllerBase
     }
 
     [HttpGet("top-products")]
-    public async Task<ActionResult<IEnumerable<TopProductResponse>>> GetTopProductsAsync([FromQuery] int limit = 10, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<IEnumerable<TopProductResponse>>> GetTopProductsAsync(CancellationToken cancellationToken, [FromQuery] int limit = 10)
     {
         var result = await _statisticsService.GetTopSellingProductsAsync(limit, cancellationToken);
 
@@ -34,7 +34,7 @@ public class StatisticsController : ControllerBase
     }
 
     [HttpGet("revenue-by-category")]
-    public async Task<ActionResult<IEnumerable<CategoryRevenueResponse>>> GetRevenueByCategoryAsync(CancellationToken cancellationToken = default)
+    public async Task<ActionResult<IEnumerable<CategoryRevenueResponse>>> GetRevenueByCategoryAsync(CancellationToken cancellationToken)
     {
         var result = await _statisticsService.GetRevenueByCategoryAsync(cancellationToken);
 
@@ -42,7 +42,7 @@ public class StatisticsController : ControllerBase
     }
 
     [HttpGet("low-stock")]
-    public async Task<ActionResult<IEnumerable<LowStockResponse>>> GetLowStockAsync([FromQuery] int threshold = 10, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<IEnumerable<LowStockResponse>>> GetLowStockAsync(CancellationToken cancellationToken, [FromQuery] int threshold = 10)
     {
         var result = await _statisticsService.GetLowStockProductsAsync(threshold, cancellationToken);
 
@@ -50,7 +50,7 @@ public class StatisticsController : ControllerBase
     }
 
     [HttpGet("top-users")]
-    public async Task<ActionResult<IEnumerable<TopUserResponse>>> GetTopUsersAsync([FromQuery] int limit = 10, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<IEnumerable<TopUserResponse>>> GetTopUsersAsync(CancellationToken cancellationToken, [FromQuery] int limit = 10)
     {
         var result = await _statisticsService.GetTopUsersAsync(limit, cancellationToken);
 
