@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PI.BLL.DTOs.Catalog;
 using PI.BLL.Interfaces;
@@ -7,6 +8,7 @@ namespace PI.PL.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin, Manager")]
 public class ProductsController : ControllerBase
 {
     private readonly IProductService _productService;
@@ -25,6 +27,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetById([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var product = await _productService.GetByIdAsync(id, cancellationToken);
@@ -33,6 +36,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var products = await _productService.GetAllAsync(cancellationToken);
@@ -41,6 +45,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet("paged")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetPaged([FromQuery] ProductFilterModel filter, CancellationToken cancellationToken)
     {
         var result = await _productService.GetPagedAsync(filter, cancellationToken);
