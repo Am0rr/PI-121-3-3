@@ -18,7 +18,7 @@ public class StatisticsController : ControllerBase
     }
 
     [HttpGet("summary")]
-    public async Task<ActionResult<SummaryResponse>> GetSummaryAsync([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, CancellationToken cancellationToken)
+    public async Task<ActionResult<SummaryResponse>> GetSummaryAsync([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, CancellationToken cancellationToken = default)
     {
         var result = await _statisticsService.GetSummaryAsync(startDate, endDate, cancellationToken);
 
@@ -34,7 +34,7 @@ public class StatisticsController : ControllerBase
     }
 
     [HttpGet("revenue-by-category")]
-    public async Task<ActionResult<IEnumerable<CategoryRevenueResponse>>> GetRevenueByCategoryAsync(CancellationToken cancellationToken)
+    public async Task<ActionResult<IEnumerable<CategoryRevenueResponse>>> GetRevenueByCategoryAsync(CancellationToken cancellationToken = default)
     {
         var result = await _statisticsService.GetRevenueByCategoryAsync(cancellationToken);
 
