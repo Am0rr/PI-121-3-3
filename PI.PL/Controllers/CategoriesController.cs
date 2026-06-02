@@ -7,7 +7,7 @@ namespace PI.PL.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin, Manager")]
+[Authorize(Roles = "Admin,Manager")]
 public class CategoriesController : ControllerBase
 {
     private readonly ICategoryService _categoryService;
@@ -18,7 +18,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateCategoryRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<CategoryResponse>> Create([FromBody] CreateCategoryRequest request, CancellationToken cancellationToken)
     {
         var response = await _categoryService.CreateAsync(request, cancellationToken);
 
@@ -27,7 +27,7 @@ public class CategoriesController : ControllerBase
 
     [HttpGet("{id:guid}")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetById([FromRoute] Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<CategoryResponse>> GetById(Guid id, CancellationToken cancellationToken)
     {
         var category = await _categoryService.GetByIdAsync(id, cancellationToken);
 
@@ -36,7 +36,7 @@ public class CategoriesController : ControllerBase
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    public async Task<ActionResult<IEnumerable<CategoryResponse>>> GetAll(CancellationToken cancellationToken)
     {
         var categories = await _categoryService.GetAllAsync(cancellationToken);
 
@@ -44,7 +44,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPatch("{id:guid}")]
-    public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateCategoryRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCategoryRequest request, CancellationToken cancellationToken)
     {
         await _categoryService.UpdateAsync(id, request, cancellationToken);
 
@@ -52,7 +52,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete([FromRoute] Guid id,  CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         await _categoryService.DeleteAsync(id, cancellationToken);
 
