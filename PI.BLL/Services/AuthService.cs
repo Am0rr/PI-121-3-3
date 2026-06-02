@@ -64,11 +64,11 @@ public class AuthService : BaseService, IAuthService
     {
         var accessToken = _jwtProvider.GenerateAccessToken(user.Id, user.Username, user.Role.ToString());
 
-        var refreshTokenStr = _jwtProvider.GenerateRefreshToken();
+        var refreshTokenResult = _jwtProvider.GenerateRefreshToken();
 
         var refreshToken = RefreshToken.Create(
-            refreshTokenStr,
-            DateTime.UtcNow.AddDays(7),
+            refreshTokenResult.Token,
+            refreshTokenResult.ExpiresAt,
             user.Id
         );
 
@@ -78,7 +78,7 @@ public class AuthService : BaseService, IAuthService
         return new AuthResponse
         {
             AccessToken = accessToken,
-            RefreshToken = refreshTokenStr,
+            RefreshToken = refreshTokenResult.Token,
             UserId = user.Id,
             Username = user.Username,
             Role = user.Role.ToString()
