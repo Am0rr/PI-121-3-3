@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using PI.BLL.DTOs.Identity;
 using PI.BLL.Interfaces;
 
 namespace PI.PL.Infrastructure.Identity;
@@ -40,10 +41,13 @@ public class JwtProvider : IJwtProvider
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    public string GenerateRefreshToken()
+    public RefreshTokenResult GenerateRefreshToken()
     {
         var randomBytes = RandomNumberGenerator.GetBytes(64);
 
-        return Convert.ToBase64String(randomBytes);
+        return new RefreshTokenResult(
+            Convert.ToBase64String(randomBytes),
+            DateTime.UtcNow.AddDays(_options.RefreshTokenLifetimeInDays)
+        );
     }
 }

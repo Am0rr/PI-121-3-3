@@ -6,4 +6,5 @@ public class JwtOptions
     public string Issuer { get; set; } = null!;
     public string Audience { get; set; } = null!;
     public int AccessTokenLifetimeInMinutes { get; set; }
+    public int RefreshTokenLifetimeInDays { get; set; }
 }
