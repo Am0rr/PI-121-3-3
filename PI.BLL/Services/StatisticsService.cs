@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using PI.BLL.DTOs.Statistic;
 using PI.BLL.Interfaces;
 using PI.DAL.Interfaces;
