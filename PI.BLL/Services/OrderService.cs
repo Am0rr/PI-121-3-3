@@ -2,7 +2,6 @@ using AutoMapper;
 using PI.BLL.Interfaces;
 using PI.DAL.Interfaces;
 using PI.BLL.DTOs.Orders;
-using PI.DAL.Entities.Catalog;
 using PI.DAL.Entities.Orders;
 using PI.DAL.Enums;
 
@@ -13,17 +12,19 @@ public class OrderService : BaseService, IOrderService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IServiceProvider serviceProvider) : base(serviceProvider)
+    public OrderService(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        IServiceProvider serviceProvider)
+        : base(serviceProvider)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
 
-    public async Task<Guid> CreateAsync(CreateOrderRequest request, Guid userId, CancellationToken cancellationToken)
+    public async Task<OrderResponse> CreateAsync(CreateOrderRequest request, Guid userId, CancellationToken cancellationToken)
     {
         await ValidateAsync(request);
-
-        var productsToUpdate = new List<Product>();
 
         var order = Order.Create(userId);
 
@@ -36,20 +37,14 @@ public class OrderService : BaseService, IOrderService
                 throw new InvalidOperationException($"Not enough stock for product {product.Name}.");
 
             product.ChangeStockQuantity(product.StockQuantity - item.Quantity);
-            productsToUpdate.Add(product);
 
             order.AddItem(product.Id, item.Quantity, product.Price);
-        }
-
-        foreach (var product in productsToUpdate)
-        {
-            _unitOfWork.Products.Update(product);
         }
 
         _unitOfWork.Orders.Add(order);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return order.Id;
+        return _mapper.Map<OrderResponse>(order);
     }
 
     public async Task UpdateStatusAsync(Guid id, UpdateOrderStatusRequest request, CancellationToken cancellationToken)
@@ -59,8 +54,6 @@ public class OrderService : BaseService, IOrderService
         var order = await _unitOfWork.Orders.GetByIdAsync(id, cancellationToken)
             ?? throw new KeyNotFoundException($"Order with ID {id} not found.");
 
-        bool hasChanges = false;
-
         if (request.Status != null)
         {
             var status = Enum.Parse<OrderStatus>(request.Status, ignoreCase: true);
@@ -68,13 +61,9 @@ public class OrderService : BaseService, IOrderService
             if (status != order.Status)
             {
                 order.ChangeStatus(status);
-                hasChanges = true;
             }
         }
 
-        if (!hasChanges) return;
-
-        _unitOfWork.Orders.Update(order);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
@@ -87,7 +76,7 @@ public class OrderService : BaseService, IOrderService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<OrderResponse?> GetByIdAsync(Guid orderId, CancellationToken cancellationToken)
+    public async Task<OrderResponse> GetByIdAsync(Guid orderId, CancellationToken cancellationToken)
     {
         var order = await _unitOfWork.Orders.GetByIdAsync(orderId, cancellationToken)
             ?? throw new KeyNotFoundException($"Order with ID {orderId} not found.");
@@ -95,14 +84,14 @@ public class OrderService : BaseService, IOrderService
         return _mapper.Map<OrderResponse>(order);
     }
 
-    public async Task<List<OrderResponse>> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<IEnumerable<OrderResponse>> GetAllAsync(CancellationToken cancellationToken)
     {
         var orders = await _unitOfWork.Orders.GetAllAsync(cancellationToken);
 
         return _mapper.Map<List<OrderResponse>>(orders);
     }
 
-    public async Task<List<OrderResponse>> GetUserOrdersAsync(Guid userId, CancellationToken cancellationToken)
+    public async Task<IEnumerable<OrderResponse>> GetUserOrdersAsync(Guid userId, CancellationToken cancellationToken)
     {
         var orders = await _unitOfWork.Orders.GetByUserIdAsync(userId, cancellationToken);
 
