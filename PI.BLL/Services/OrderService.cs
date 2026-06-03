@@ -92,7 +92,7 @@ public class OrderService : BaseService, IOrderService
     {
         var orders = await _unitOfWork.Orders.GetAllAsync(cancellationToken);
 
-        return _mapper.Map<List<OrderResponse>>(orders);
+        return _mapper.Map<IEnumerable<OrderResponse>>(orders);
     }
 
     public async Task<IEnumerable<OrderResponse>> GetUserOrdersAsync(Guid userId, Guid currentUserId, string role, CancellationToken cancellationToken)
@@ -102,7 +102,7 @@ public class OrderService : BaseService, IOrderService
 
         var orders = await _unitOfWork.Orders.GetByUserIdAsync(userId, cancellationToken);
 
-        return _mapper.Map<List<OrderResponse>>(orders);
+        return _mapper.Map<IEnumerable<OrderResponse>>(orders);
     }
 
     private static bool HasGlobalAccess(string role) =>
