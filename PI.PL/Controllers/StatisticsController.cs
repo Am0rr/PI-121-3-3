@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PI.BLL.DTOs.Statistic;
 using PI.BLL.Interfaces;
+using PI.DAL.Enums;
 
 namespace PI.PL.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = nameof(UserRole.Admin))]
 public class StatisticsController : ControllerBase
 {
     private readonly IStatisticsService _statisticsService;
