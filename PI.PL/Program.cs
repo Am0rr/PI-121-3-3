@@ -4,6 +4,7 @@ using DotNetEnv;
 using System.Text.Json.Serialization;
 using PI.PL.Infrastructure.Extensions;
 using PI.BLL;
+using Microsoft.EntityFrameworkCore;
 
 Env.TraversePath().Load();
 
@@ -42,7 +43,7 @@ using (var scope = app.Services.CreateScope())
     try
     {
         logger.LogInformation("Starting database migration...");
-        // await context.Database.MigrateAsync();
+        await context.Database.MigrateAsync();
         logger.LogInformation("Database migrated successfully.");
     }
     catch (Exception ex)
