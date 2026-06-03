@@ -8,7 +8,7 @@ namespace PI.PL.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = nameof(UserRole.Admin) + "," + nameof(UserRole.Manager))]
+[Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Manager)}")]
 public class CategoriesController : ControllerBase
 {
     private readonly ICategoryService _categoryService;

@@ -9,7 +9,7 @@ namespace PI.PL.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = nameof(UserRole.Admin) + "," + nameof(UserRole.Manager))]
+[Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Manager)}")]
 public class ProductsController : ControllerBase
 {
     private readonly IProductService _productService;
