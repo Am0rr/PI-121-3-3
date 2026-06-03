@@ -1,83 +1,111 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PI.BLL.DTOs.Orders;
+using AutoMapper;
 using PI.BLL.Interfaces;
+using PI.DAL.Interfaces;
+using PI.BLL.DTOs.Orders;
+using PI.BLL.Exceptions;
+using PI.DAL.Entities.Orders;
 using PI.DAL.Enums;
 
-namespace PI.PL.Controllers;
+namespace PI.BLL.Services;
 
-[ApiController]
-[Route("api/[controller]")]
-public class OrdersController : ControllerBase
+public class OrderService : BaseService, IOrderService
 {
-    private readonly IOrderService _orderService;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public OrdersController(IOrderService orderService)
+    public OrderService(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        IServiceProvider serviceProvider)
+        : base(serviceProvider)
     {
-        _orderService = orderService;
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
-    [HttpPost]
-    [Authorize(Roles = nameof(UserRole.Registered))]
-    public async Task<ActionResult<OrderResponse>> CreateAsync([FromBody] CreateOrderRequest request, CancellationToken cancellationToken)
+    public async Task<OrderResponse> CreateAsync(CreateOrderRequest request, Guid userId, CancellationToken cancellationToken)
     {
-        var userId = Guid.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
+        await ValidateAsync(request);
 
-        var response = await _orderService.CreateAsync(request, userId, cancellationToken);
+        var order = Order.Create(userId);
 
-        return CreatedAtAction(nameof(GetByIdAsync), new { id = response.Id }, response);
+        foreach (var item in request.Items)
+        {
+            var product = await _unitOfWork.Products.GetByIdAsync(item.ProductId, cancellationToken)
+                ?? throw new KeyNotFoundException($"Product with Id {item.ProductId} not found.");
+
+            if (product.StockQuantity < item.Quantity)
+                throw new InvalidOperationException($"Not enough stock for product {product.Name}.");
+
+            product.ChangeStockQuantity(product.StockQuantity - item.Quantity);
+
+            order.AddItem(product.Id, item.Quantity, product.Price);
+        }
+
+        _unitOfWork.Orders.Add(order);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return _mapper.Map<OrderResponse>(order);
     }
 
-    [HttpGet("{id:guid}")]
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Manager)},{nameof(UserRole.Registered)}")]
-    public async Task<ActionResult<OrderResponse>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task UpdateStatusAsync(Guid id, UpdateOrderStatusRequest request, CancellationToken cancellationToken)
     {
-        var currentUserId = Guid.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
-        var role = User.FindFirstValue(ClaimTypes.Role)!;
+        await ValidateAsync(request);
 
-        var response = await _orderService.GetByIdAsync(id, currentUserId, role, cancellationToken);
+        var order = await _unitOfWork.Orders.GetByIdAsync(id, cancellationToken)
+            ?? throw new KeyNotFoundException($"Order with ID {id} not found.");
 
-        return Ok(response);
+        if (request.Status != null)
+        {
+            var status = Enum.Parse<OrderStatus>(request.Status, ignoreCase: true);
+
+            if (status != order.Status)
+            {
+                order.ChangeStatus(status);
+            }
+        }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    [HttpGet]
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Manager)}")]
-    public async Task<ActionResult<IEnumerable<OrderResponse>>> GetAllAsync(CancellationToken cancellationToken)
+    public async Task DeleteAsync(Guid orderId, CancellationToken cancellationToken)
     {
-        var response = await _orderService.GetAllAsync(cancellationToken);
+        var order = await _unitOfWork.Orders.GetByIdAsync(orderId, cancellationToken)
+            ?? throw new KeyNotFoundException($"Order with ID {orderId} not found.");
 
-        return Ok(response);
+        _unitOfWork.Orders.Delete(order);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    [HttpGet("user/{userId:guid}")]
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Manager)},{nameof(UserRole.Registered)}")]
-    public async Task<ActionResult<IEnumerable<OrderResponse>>> GetUserOrdersAsync(Guid userId, CancellationToken cancellationToken)
+    public async Task<OrderResponse> GetByIdAsync(Guid orderId, Guid currentUserId, string role, CancellationToken cancellationToken)
     {
-        var currentUserId = Guid.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
-        var role = User.FindFirstValue(ClaimTypes.Role)!;
+        var order = await _unitOfWork.Orders.GetByIdAsync(orderId, cancellationToken)
+            ?? throw new KeyNotFoundException($"Order with ID {orderId} not found.");
 
-        var response = await _orderService.GetUserOrdersAsync(userId, currentUserId, role, cancellationToken);
+        if (!HasGlobalAccess(role) && order.UserId != currentUserId)
+            throw new ForbiddenException("You are not allowed to access this order.");
 
-        return Ok(response);
+        return _mapper.Map<OrderResponse>(order);
     }
 
-    [HttpPatch("{id:guid}")]
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Manager)}")]
-    public async Task<IActionResult> UpdateStatusAsync(Guid id, [FromBody] UpdateOrderStatusRequest request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<OrderResponse>> GetAllAsync(CancellationToken cancellationToken)
     {
-        await _orderService.UpdateStatusAsync(id, request, cancellationToken);
+        var orders = await _unitOfWork.Orders.GetAllAsync(cancellationToken);
 
-        return NoContent();
+        return _mapper.Map<IEnumerable<OrderResponse>>(orders);
     }
 
-    [HttpDelete("{id:guid}")]
-    [Authorize(Roles = nameof(UserRole.Admin))]
-    public async Task<IActionResult> DeleteAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<IEnumerable<OrderResponse>> GetUserOrdersAsync(Guid userId, Guid currentUserId, string role, CancellationToken cancellationToken)
     {
-        await _orderService.DeleteAsync(id, cancellationToken);
+        if (!HasGlobalAccess(role) && userId != currentUserId)
+            throw new ForbiddenException("You are not allowed to access these orders.");
 
-        return NoContent();
+        var orders = await _unitOfWork.Orders.GetByUserIdAsync(userId, cancellationToken);
+
+        return _mapper.Map<IEnumerable<OrderResponse>>(orders);
     }
+
+    private static bool HasGlobalAccess(string role) =>
+        string.Equals(role, nameof(UserRole.Admin), StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(role, nameof(UserRole.Manager), StringComparison.OrdinalIgnoreCase);
 }
