@@ -2,13 +2,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PI.BLL.DTOs.Catalog;
 using PI.BLL.Interfaces;
+using PI.DAL.Enums;
 using PI.DAL.Models.Catalog;
 
 namespace PI.PL.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin,Manager")]
+[Authorize(Roles = nameof(UserRole.Admin) + "," + nameof(UserRole.Manager))]
 public class ProductsController : ControllerBase
 {
     private readonly IProductService _productService;
