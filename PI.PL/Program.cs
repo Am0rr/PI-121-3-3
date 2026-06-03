@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using PI.PL.Infrastructure.Extensions;
 using PI.BLL;
 using Microsoft.EntityFrameworkCore;
+using PI.PL.Middleware;
 
 Env.TraversePath().Load();
 
@@ -33,6 +34,8 @@ builder.Services.AddApplication();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 using (var scope = app.Services.CreateScope())
 {
