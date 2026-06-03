@@ -8,12 +8,12 @@ using PI.DAL.Enums;
 
 namespace PI.BLL.Services;
 
-public class OrderService : IOrderService
+public class OrderService : BaseService, IOrderService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public OrderService(IUnitOfWork unitOfWork, IMapper mapper)
+    public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -21,8 +21,7 @@ public class OrderService : IOrderService
 
     public async Task<Guid> CreateAsync(CreateOrderRequest request, Guid userId, CancellationToken cancellationToken)
     {
-        if (request.Items is null)
-            throw new ArgumentException("Order items must be provided.", nameof(request));
+        await ValidateAsync(request);
 
         var productsToUpdate = new List<Product>();
 
@@ -55,6 +54,8 @@ public class OrderService : IOrderService
 
     public async Task UpdateStatusAsync(Guid id, UpdateOrderStatusRequest request, CancellationToken cancellationToken)
     {
+        await ValidateAsync(request);
+
         var order = await _unitOfWork.Orders.GetByIdAsync(id, cancellationToken)
             ?? throw new KeyNotFoundException($"Order with ID {id} not found.");
 
