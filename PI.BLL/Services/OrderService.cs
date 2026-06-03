@@ -2,6 +2,7 @@ using AutoMapper;
 using PI.BLL.Interfaces;
 using PI.DAL.Interfaces;
 using PI.BLL.DTOs.Orders;
+using PI.BLL.Exceptions;
 using PI.DAL.Entities.Orders;
 using PI.DAL.Enums;
 
@@ -76,10 +77,13 @@ public class OrderService : BaseService, IOrderService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<OrderResponse> GetByIdAsync(Guid orderId, CancellationToken cancellationToken)
+    public async Task<OrderResponse> GetByIdAsync(Guid orderId, Guid currentUserId, string role, CancellationToken cancellationToken)
     {
         var order = await _unitOfWork.Orders.GetByIdAsync(orderId, cancellationToken)
             ?? throw new KeyNotFoundException($"Order with ID {orderId} not found.");
+
+        if (!HasGlobalAccess(role) && order.UserId != currentUserId)
+            throw new ForbiddenException("You are not allowed to access this order.");
 
         return _mapper.Map<OrderResponse>(order);
     }
@@ -91,10 +95,17 @@ public class OrderService : BaseService, IOrderService
         return _mapper.Map<List<OrderResponse>>(orders);
     }
 
-    public async Task<IEnumerable<OrderResponse>> GetUserOrdersAsync(Guid userId, CancellationToken cancellationToken)
+    public async Task<IEnumerable<OrderResponse>> GetUserOrdersAsync(Guid userId, Guid currentUserId, string role, CancellationToken cancellationToken)
     {
+        if (!HasGlobalAccess(role) && userId != currentUserId)
+            throw new ForbiddenException("You are not allowed to access these orders.");
+
         var orders = await _unitOfWork.Orders.GetByUserIdAsync(userId, cancellationToken);
 
         return _mapper.Map<List<OrderResponse>>(orders);
     }
+
+    private static bool HasGlobalAccess(string role) =>
+        string.Equals(role, nameof(UserRole.Admin), StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(role, nameof(UserRole.Manager), StringComparison.OrdinalIgnoreCase);
 }

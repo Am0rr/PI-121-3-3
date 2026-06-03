@@ -10,9 +10,9 @@ public interface IOrderService
 
     Task DeleteAsync(Guid orderId, CancellationToken cancellationToken = default);
 
-    Task<OrderResponse> GetByIdAsync(Guid orderId, CancellationToken cancellationToken = default);
+    Task<OrderResponse> GetByIdAsync(Guid orderId, Guid currentUserId, string role, CancellationToken cancellationToken = default);
 
     Task<IEnumerable<OrderResponse>> GetAllAsync(CancellationToken cancellationToken = default);
 
-    Task<IEnumerable<OrderResponse>> GetUserOrdersAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<OrderResponse>> GetUserOrdersAsync(Guid userId, Guid currentUserId, string role, CancellationToken cancellationToken = default);
 }
