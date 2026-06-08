@@ -25,6 +25,9 @@ public class CategoryService : BaseService, ICategoryService
     {
         await ValidateAsync(request);
 
+        if (await _unitOfWork.Categories.ExistsByNameAsync(request.Name, cancellationToken))
+            throw new InvalidOperationException($"A category with the name '{request.Name}' already exists.");
+
         var category = Category.Create(request.Name, request.Description);
 
         _unitOfWork.Categories.Add(category);
